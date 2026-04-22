@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NKP Frog Mega-Flow v13.1 (QR Fix)</title>
+    <title>NKP Frog Mega-Flow v14.0 (QR Traceability)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -41,126 +41,120 @@
 </head>
 <body>
 
-<div id="loading" class="loader no-print">⏳ กำลังซิงค์ข้อมูล...</div>
+<div id="loading" class="loader no-print">⏳ กำลังประมวลผล...</div>
 <div id="print-area"></div>
 
-<div class="header no-print">
-    <h2 style="margin: 0;">🐸 NKP Mega-Flow v13.1</h2>
-    <p style="margin: 5px 0 0 0;">ระบบจัดการซัพพลายเชนกบนานครพนม</p>
-</div>
-
-<div class="menu-bar no-print">
-    <button class="menu-btn active" onclick="switchTab('home')">🏠 เลี้ยง/ขาย</button>
-    <button class="menu-btn" onclick="switchTab('history')">🕰️ ประวัติย้อนหลัง</button>
-    <button class="menu-btn" onclick="switchTab('annual')">🗓️ สรุปรายปี</button>
-    <button class="menu-btn" onclick="switchTab('forecast')">🔮 พยากรณ์ผลผลิต</button>
-    <button class="menu-btn" onclick="switchTab('receipt')">🖨️ ออกใบเสร็จ</button>
-    <button class="menu-btn" onclick="switchTab('cost')">💸 ต้นทุน</button>
-    <button class="menu-btn" onclick="switchTab('issue')">🚨 ปัญหา</button>
-    <button class="menu-btn" onclick="switchTab('dashboard')">📊 แดชบอร์ด</button>
-    <button class="menu-btn" onclick="switchTab('report')">📑 รายงาน Excel</button>
-    <button class="menu-btn" onclick="switchTab('settings')">⚙️ ตั้งค่า</button>
-</div>
-
-<div id="home" class="tab-content active no-print">
-    <div class="section-box">
-        <h3 style="margin-top:0;">➕ ลงบ่อรอบใหม่</h3>
-        <select id="mName"><option value="">-- เลือกชื่อสมาชิก --</option></select>
-        <div class="grid-2"><input type="text" id="pondName" placeholder="ชื่อบ่อ (เช่น บ่อ 1)"><input type="text" id="pondSize" placeholder="ขนาดบ่อ (เช่น 4x4 ม.)"></div>
-        <div class="grid-2"><input type="date" id="date"><div style="display:flex; gap:5px;"><input type="number" id="usedMale" placeholder="พ่อพันธุ์ลงบ่อ"><input type="number" id="usedFemale" placeholder="แม่พันธุ์ลงบ่อ"></div></div>
-        <button class="btn bg-green" onclick="addEntry()">บันทึกลงระบบออนไลน์</button>
+<div id="app-container">
+    <div class="header no-print">
+        <h2 style="margin: 0;">🐸 NKP Mega-Flow v14.0</h2>
+        <p style="margin: 5px 0 0 0;">ระบบจัดการซัพพลายเชนกบนานครพนม</p>
     </div>
-    <div id="main-list"></div>
-</div>
 
-<div id="history" class="tab-content no-print">
-    <div class="section-box" style="border-top-color: var(--gray);">
-        <h3 style="color:var(--gray); margin-top:0;">🕰️ ประวัติการเลี้ยงและขายย้อนหลัง</h3>
-        <p style="font-size:0.85em; color:#666;">เรียกดูข้อมูลบ่อที่ปิดยอดไปแล้ว สามารถกรองหาวัน/เดือน/ปีที่ต้องการได้</p>
-        
-        <div class="grid-2">
-            <select id="histMember" onchange="renderHistory()"></select>
-            <select id="histType" onchange="updateHistInput()">
-                <option value="ALL">ดูประวัติทั้งหมด</option>
-                <option value="DAY">ระบุรายวัน</option>
-                <option value="MONTH">ระบุรายเดือน</option>
-                <option value="YEAR">ระบุรายปี</option>
-            </select>
+    <div class="menu-bar no-print">
+        <button class="menu-btn active" onclick="switchTab('home')">🏠 เลี้ยง/ขาย</button>
+        <button class="menu-btn" onclick="switchTab('history')">🕰️ ประวัติย้อนหลัง</button>
+        <button class="menu-btn" onclick="switchTab('annual')">🗓️ สรุปรายปี</button>
+        <button class="menu-btn" onclick="switchTab('forecast')">🔮 พยากรณ์ผลผลิต</button>
+        <button class="menu-btn" onclick="switchTab('receipt')">🖨️ ออกใบเสร็จ</button>
+        <button class="menu-btn" onclick="switchTab('cost')">💸 ต้นทุน</button>
+        <button class="menu-btn" onclick="switchTab('issue')">🚨 ปัญหา</button>
+        <button class="menu-btn" onclick="switchTab('dashboard')">📊 แดชบอร์ด</button>
+        <button class="menu-btn" onclick="switchTab('report')">📑 รายงาน Excel</button>
+        <button class="menu-btn" onclick="switchTab('settings')">⚙️ ตั้งค่า</button>
+    </div>
+
+    <div id="home" class="tab-content active no-print">
+        <div class="section-box">
+            <h3 style="margin-top:0;">➕ ลงบ่อรอบใหม่</h3>
+            <select id="mName"><option value="">-- เลือกชื่อสมาชิก --</option></select>
+            <div class="grid-2"><input type="text" id="pondName" placeholder="ชื่อบ่อ (เช่น บ่อ 1)"><input type="text" id="pondSize" placeholder="ขนาดบ่อ (เช่น 4x4 ม.)"></div>
+            <div class="grid-2"><input type="date" id="date"><div style="display:flex; gap:5px;"><input type="number" id="usedMale" placeholder="พ่อพันธุ์ลงบ่อ"><input type="number" id="usedFemale" placeholder="แม่พันธุ์ลงบ่อ"></div></div>
+            <button class="btn bg-green" onclick="addEntry()">บันทึกลงระบบออนไลน์</button>
         </div>
-        <div id="histInputContainer" style="margin-bottom:10px;"></div>
-        <div id="history-list"></div>
+        <div id="main-list"></div>
     </div>
-</div>
 
-<div id="annual" class="tab-content no-print">
-    <div class="section-box" style="border-top-color: var(--blue);">
-        <h3 style="color:var(--blue); margin-top:0;">🗓️ สรุปผลประกอบการรายปี</h3>
-        <div class="grid-2"><select id="annualYear" onchange="renderAnnualReview()"></select><select id="annualMember" onchange="renderAnnualReview()"><option value="ALL">ภาพรวมกลุ่ม (ทุกคน)</option></select></div>
-        <div id="annual-kpi" class="grid-2" style="margin-top: 15px;"></div>
-        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h4 style="color: var(--dark); margin-top:0;">🤝 สรุปการขาย (ขายให้ใครบ้าง?)</h4><div id="annual-buyers" style="font-size: 0.9em;"></div></div>
-        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h4 style="color: var(--red); margin-top:0;">🚨 สรุปปัญหาที่พบในปีนี้</h4><div id="annual-issues" style="font-size: 0.9em;"></div></div>
+    <div id="history" class="tab-content no-print">
+        <div class="section-box" style="border-top-color: var(--gray);">
+            <h3 style="color:var(--gray); margin-top:0;">🕰️ ประวัติการเลี้ยงและขายย้อนหลัง</h3>
+            <p style="font-size:0.85em; color:#666;">เรียกดูข้อมูลบ่อที่ปิดยอดไปแล้ว สามารถกรองหาวัน/เดือน/ปีที่ต้องการได้</p>
+            <div class="grid-2"><select id="histMember" onchange="renderHistory()"></select><select id="histType" onchange="updateHistInput()"><option value="ALL">ดูประวัติทั้งหมด</option><option value="DAY">ระบุรายวัน</option><option value="MONTH">ระบุรายเดือน</option><option value="YEAR">ระบุรายปี</option></select></div>
+            <div id="histInputContainer" style="margin-bottom:10px;"></div>
+            <div id="history-list"></div>
+        </div>
     </div>
-</div>
 
-<div id="forecast" class="tab-content no-print"><div class="section-box" style="border-top-color: var(--teal);"><h3 style="color:var(--teal); margin-top:0;">🔮 ปฏิทินพยากรณ์ผลผลิตล่วงหน้า</h3><div id="forecast-list"></div></div></div>
-
-<div id="receipt" class="tab-content no-print">
-    <div class="section-box" style="border-top-color: var(--dark);"><h3 style="color:var(--dark); margin-top:0;">🖨️ ออกใบเสร็จรับเงิน (มี QR Code)</h3>
-    <p style="font-size:0.85em; color:#666;">ประวัติการขายรายครั้ง (แบ่งขาย/ขายเหมา)</p><div id="receipt-list"></div></div>
-</div>
-
-<div id="cost" class="tab-content no-print">
-    <div class="section-box" style="border-top-color: var(--orange);">
-        <h3 style="color:var(--orange); margin-top:0;">💸 บันทึกต้นทุน/รายจ่าย</h3>
-        <select id="costPondSelect" onchange="renderCostHistory()"></select>
-        <div class="grid-2"><select id="costType"><option>ค่าอาหาร</option><option>ค่าพันธุ์</option><option>ค่าแรงจ้าง</option><option>ค่าก่อสร้างบ่อ</option><option>ค่ายา/วิตามิน</option><option>อื่นๆ</option></select><input type="number" id="costAmount" placeholder="ยอดเงิน (บาท)"></div>
-        <button class="btn bg-orange" onclick="addCost()">บันทึกรายจ่าย</button>
+    <div id="annual" class="tab-content no-print">
+        <div class="section-box" style="border-top-color: var(--blue);">
+            <h3 style="color:var(--blue); margin-top:0;">🗓️ สรุปผลประกอบการรายปี</h3>
+            <div class="grid-2"><select id="annualYear" onchange="renderAnnualReview()"></select><select id="annualMember" onchange="renderAnnualReview()"><option value="ALL">ภาพรวมกลุ่ม (ทุกคน)</option></select></div>
+            <div id="annual-kpi" class="grid-2" style="margin-top: 15px;"></div>
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h4 style="color: var(--dark); margin-top:0;">🤝 สรุปการขาย (ขายให้ใครบ้าง?)</h4><div id="annual-buyers" style="font-size: 0.9em;"></div></div>
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h4 style="color: var(--red); margin-top:0;">🚨 สรุปปัญหาที่พบในปีนี้</h4><div id="annual-issues" style="font-size: 0.9em;"></div></div>
+        </div>
     </div>
-    <div id="cost-history" class="section-box"></div>
-</div>
 
-<div id="issue" class="tab-content no-print">
-    <div class="section-box" style="border-top-color: var(--red);">
-        <h3 style="color:var(--red); margin-top:0;">🚨 บันทึกปัญหาการเลี้ยง</h3>
-        <select id="issuePondSelect"></select>
-        <select id="issueCategory"><option>โรคระบาด / สุขภาพกบ</option><option>สภาพอากาศ / น้ำเสีย</option><option>กบโตช้า / กินกันเอง</option><option>การตลาด / ราคา</option><option>อื่นๆ</option></select>
-        <textarea id="issueDetail" placeholder="อธิบายปัญหาที่พบ..." rows="2"></textarea>
-        <textarea id="issueSolution" placeholder="แนวทางแก้ไข / ความต้องการ..." rows="2"></textarea>
-        <button class="btn bg-red" onclick="addIssue()">บันทึกข้อมูลวิเคราะห์</button>
+    <div id="forecast" class="tab-content no-print"><div class="section-box" style="border-top-color: var(--teal);"><h3 style="color:var(--teal); margin-top:0;">🔮 ปฏิทินพยากรณ์ผลผลิตล่วงหน้า</h3><div id="forecast-list"></div></div></div>
+
+    <div id="receipt" class="tab-content no-print">
+        <div class="section-box" style="border-top-color: var(--dark);"><h3 style="color:var(--dark); margin-top:0;">🖨️ ออกใบเสร็จรับเงิน (มี QR Code)</h3>
+        <p style="font-size:0.85em; color:#666;">ประวัติการขายรายครั้ง (แบ่งขาย/ขายเหมา)</p><div id="receipt-list"></div></div>
     </div>
-    <div id="issue-history" class="section-box"></div>
-</div>
 
-<div id="dashboard" class="tab-content no-print"><div class="section-box" style="border-top-color: var(--purple);"><h3 style="color:var(--purple); margin-top:0;">📊 แดชบอร์ดสรุปกลุ่ม</h3><button class="btn" style="background:var(--purple); margin-bottom:15px;" onclick="renderDashboard()">🔄 อัปเดตข้อมูล</button><div style="height: 250px;"><canvas id="profitChart"></canvas></div></div></div>
-
-<div id="report" class="tab-content no-print">
-    <div class="section-box" style="border-top-color: var(--blue);">
-        <h3 style="color:var(--blue); margin-top:0;">📑 รายงานผลประกอบการ</h3>
-        <div class="grid-2"><select id="filterQuarter" onchange="renderReportTable()"><option value="ALL">ทุกไตรมาส</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option></select><select id="filterMember" onchange="renderReportTable()"><option value="ALL">รายกลุ่ม</option></select></div>
-        <div style="overflow-x: auto; margin-top: 10px;"><table class="report-table"><thead style="background:#f5f5f5;"><tr><th>สมาชิก</th><th>บ่อ</th><th>รายได้</th><th>ต้นทุน</th><th>กำไร</th></tr></thead><tbody id="report-body"></tbody><tfoot id="report-footer" style="background:#e8f5e9; font-weight:bold;"></tfoot></table></div>
-        <button class="btn bg-blue" style="margin-top:15px;" onclick="exportToExcel()">📥 ดาวน์โหลด Excel</button>
+    <div id="cost" class="tab-content no-print">
+        <div class="section-box" style="border-top-color: var(--orange);">
+            <h3 style="color:var(--orange); margin-top:0;">💸 บันทึกต้นทุน/รายจ่าย</h3>
+            <select id="costPondSelect" onchange="renderCostHistory()"></select>
+            <div class="grid-2"><select id="costType"><option>ค่าอาหาร</option><option>ค่าพันธุ์</option><option>ค่าแรงจ้าง</option><option>ค่าก่อสร้างบ่อ</option><option>ค่ายา/วิตามิน</option><option>อื่นๆ</option></select><input type="number" id="costAmount" placeholder="ยอดเงิน (บาท)"></div>
+            <button class="btn bg-orange" onclick="addCost()">บันทึกรายจ่าย</button>
+        </div>
+        <div id="cost-history" class="section-box"></div>
     </div>
-</div>
 
-<div id="settings" class="tab-content no-print">
-    <div class="section-box">
-        <h3 style="margin-top:0;">👥 ทะเบียนรายชื่อสมาชิก</h3>
-        <input type="text" id="newMemberName" placeholder="ชื่อ-นามสกุล สมาชิก">
-        <div class="grid-2"><input type="tel" id="newMemberPhone" placeholder="เบอร์โทรศัพท์"><input type="text" id="newMemberArea" placeholder="พื้นที่ฟาร์ม (เช่น 2 ไร่)"></div>
-        <div class="grid-2"><input type="number" id="newMemberTotalMale" placeholder="พ่อพันธุ์(ตัว)"><input type="number" id="newMemberTotalFemale" placeholder="แม่พันธุ์(ตัว)"></div>
-        <button class="btn bg-green" id="btnSaveMember" onclick="saveMember()">+ บันทึกสมาชิก</button>
-        <div id="member-list" style="margin-top: 15px;"></div>
+    <div id="issue" class="tab-content no-print">
+        <div class="section-box" style="border-top-color: var(--red);">
+            <h3 style="color:var(--red); margin-top:0;">🚨 บันทึกปัญหาการเลี้ยง</h3>
+            <select id="issuePondSelect"></select>
+            <select id="issueCategory"><option>โรคระบาด / สุขภาพกบ</option><option>สภาพอากาศ / น้ำเสีย</option><option>กบโตช้า / กินกันเอง</option><option>การตลาด / ราคา</option><option>อื่นๆ</option></select>
+            <textarea id="issueDetail" placeholder="อธิบายปัญหาที่พบ..." rows="2"></textarea>
+            <textarea id="issueSolution" placeholder="แนวทางแก้ไข / ความต้องการ..." rows="2"></textarea>
+            <button class="btn bg-red" onclick="addIssue()">บันทึกข้อมูลวิเคราะห์</button>
+        </div>
+        <div id="issue-history" class="section-box"></div>
     </div>
-    <div class="section-box" style="border-top-color: #9c27b0;">
-        <h3 style="color:#9c27b0; margin-top:0;">🛍️ ทะเบียนแม่ค้า/ผู้รับซื้อ</h3>
-        <div style="display:flex; gap:5px;"><input type="text" id="newMerchantName" placeholder="ชื่อแม่ค้า"><button class="btn" id="btnSaveMerchant" style="background:#9c27b0; width:auto; padding:0 20px; margin-top:0;" onclick="saveMerchant()">บันทึก</button></div>
-        <div id="merchant-list" style="margin-top: 10px;"></div>
-    </div>
-</div>
 
-<script>
+    <div id="dashboard" class="tab-content no-print"><div class="section-box" style="border-top-color: var(--purple);"><h3 style="color:var(--purple); margin-top:0;">📊 แดชบอร์ดสรุปกลุ่ม</h3><button class="btn" style="background:var(--purple); margin-bottom:15px;" onclick="renderDashboard()">🔄 อัปเดตข้อมูล</button><div style="height: 250px;"><canvas id="profitChart"></canvas></div></div></div>
+
+    <div id="report" class="tab-content no-print">
+        <div class="section-box" style="border-top-color: var(--blue);">
+            <h3 style="color:var(--blue); margin-top:0;">📑 รายงานผลประกอบการ</h3>
+            <div class="grid-2"><select id="filterQuarter" onchange="renderReportTable()"><option value="ALL">ทุกไตรมาส</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option></select><select id="filterMember" onchange="renderReportTable()"><option value="ALL">รายกลุ่ม</option></select></div>
+            <div style="overflow-x: auto; margin-top: 10px;"><table class="report-table"><thead style="background:#f5f5f5;"><tr><th>สมาชิก</th><th>บ่อ</th><th>รายได้</th><th>ต้นทุน</th><th>กำไร</th></tr></thead><tbody id="report-body"></tbody><tfoot id="report-footer" style="background:#e8f5e9; font-weight:bold;"></tfoot></table></div>
+            <button class="btn bg-blue" style="margin-top:15px;" onclick="exportToExcel()">📥 ดาวน์โหลด Excel</button>
+        </div>
+    </div>
+
+    <div id="settings" class="tab-content no-print">
+        <div class="section-box">
+            <h3 style="margin-top:0;">👥 ทะเบียนรายชื่อสมาชิก</h3>
+            <input type="text" id="newMemberName" placeholder="ชื่อ-นามสกุล สมาชิก">
+            <div class="grid-2"><input type="tel" id="newMemberPhone" placeholder="เบอร์โทรศัพท์"><input type="text" id="newMemberArea" placeholder="พื้นที่ฟาร์ม (เช่น 2 ไร่)"></div>
+            <div class="grid-2"><input type="number" id="newMemberTotalMale" placeholder="พ่อพันธุ์(ตัว)"><input type="number" id="newMemberTotalFemale" placeholder="แม่พันธุ์(ตัว)"></div>
+            <button class="btn bg-green" id="btnSaveMember" onclick="saveMember()">+ บันทึกสมาชิก</button>
+            <div id="member-list" style="margin-top: 15px;"></div>
+        </div>
+        <div class="section-box" style="border-top-color: #9c27b0;">
+            <h3 style="color:#9c27b0; margin-top:0;">🛍️ ทะเบียนแม่ค้า/ผู้รับซื้อ</h3>
+            <div style="display:flex; gap:5px;"><input type="text" id="newMerchantName" placeholder="ชื่อแม่ค้า"><button class="btn" id="btnSaveMerchant" style="background:#9c27b0; width:auto; padding:0 20px; margin-top:0;" onclick="saveMerchant()">บันทึก</button></div>
+            <div id="merchant-list" style="margin-top: 10px;"></div>
+        </div>
+    </div>
+</div> <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxNL8xdDCgDXyEW8G-OrimMstvZISeXLLnCRZC4x3jo6Fg08LqanHm_QsyFlA5tCmZz/exec"; 
     
+    // ตั้งค่าตัวแปร (ใช้ลิงก์แอปคุณบน GitHub)
+    const MY_WEB_URL = "https://santisunee22-nkp.github.io/nkp-megaflow/";
+
     let db = []; 
     let expenses = JSON.parse(localStorage.getItem('nkp_expenses') || '[]'); 
     let issues = JSON.parse(localStorage.getItem('nkp_issues') || '[]');
@@ -170,6 +164,46 @@
     let editingMemberId = null; let editingMerchantId = null;
 
     function showLoad(show) { document.getElementById('loading').style.display = show ? 'block' : 'none'; }
+
+    // 🔴 เวทมนตร์ของระบบตรวจสอบย้อนกลับ (ดักจับการโหลดหน้าเว็บ)
+    window.onload = () => { 
+        const urlParams = new URLSearchParams(window.location.search);
+        // ถ้าลิงก์ที่เปิดเข้ามา มีพารามิเตอร์คำว่า trace=1 แสดงว่าคนภายนอกสแกน QR เข้ามา
+        if(urlParams.get('trace') === '1') {
+            document.getElementById('app-container').style.display = 'none'; // ซ่อนระบบหลังบ้านทั้งหมด!
+            
+            const m = urlParams.get('m') || '-';
+            const p = urlParams.get('p') || '-';
+            const d = urlParams.get('d') || '-';
+            
+            // สร้างหน้าต่างสำหรับลูกค้าดูโดยเฉพาะ
+            const traceUI = document.createElement('div');
+            traceUI.style.padding = '20px';
+            traceUI.innerHTML = `
+                <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:center;">
+                    <div style="font-size:3em; margin-bottom:10px;">🐸</div>
+                    <h2 style="color:#1b5e20; margin:0;">วิสาหกิจชุมชนแปลงใหญ่<br>กบนานครพนม</h2>
+                    <div style="background:#e8f5e9; color:#2e7d32; padding:10px; border-radius:8px; margin:15px 0; font-weight:bold; font-size:1.1em;">
+                        ✅ ผ่านการตรวจสอบมาตรฐาน<br>ระบบตรวจสอบย้อนกลับ (Traceability)
+                    </div>
+                    <div style="text-align:left; border:1px solid #ddd; padding:15px; border-radius:8px; font-size:1.1em; color:#333;">
+                        <p style="margin:8px 0;"><b>🧑‍🌾 ชื่อเกษตรกร:</b> ${m}</p>
+                        <p style="margin:8px 0;"><b>🏷️ รหัสบ่อผลิต:</b> ${p}</p>
+                        <p style="margin:8px 0;"><b>📅 วันที่เริ่มเลี้ยง:</b> ${d}</p>
+                        <p style="margin:8px 0;"><b>📍 แหล่งที่มา:</b> จ.นครพนม (ปลอดภัย 100%)</p>
+                    </div>
+                    <div style="margin-top:20px; font-size:0.85em; color:#666;">
+                        🙏 ขอบคุณที่สนับสนุนผลผลิตจากเกษตรกรไทย
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(traceUI);
+            return; // หยุดการทำงานของแอปส่วนอื่นๆ
+        }
+
+        // ถ้าไม่มี trace=1 แปลว่าประธานเปิดแอปปกติ ก็ให้รันระบบหลังบ้านตามปกติ
+        updateDropdowns(); renderSettings(); loadData(); 
+    };
 
     async function loadData() {
         showLoad(true);
@@ -194,7 +228,7 @@
         
         db[idx].w = Number(db[idx].w) + w; db[idx].pr = p; db[idx].i = Number(db[idx].i) + incomeThisTime; 
         if(db[idx].buyer === '-' || db[idx].buyer === '') db[idx].buyer = b; else if(!db[idx].buyer.includes(b)) db[idx].buyer += `, ${b}`;
-        if(isFinal) { if(confirm("คุณต้องการปิดบ่อนี้เลยใช่หรือไม่? (จะไม่สามารถบันทึกขายเพิ่มได้อีก)")) { db[idx].st = 'sold'; } else { return; } }
+        if(isFinal) { if(confirm("ต้องการปิดบ่อนี้เลยใช่หรือไม่?")) { db[idx].st = 'sold'; } else { return; } }
         
         renderMain(); updateDropdowns();
         showLoad(true); 
@@ -249,15 +283,16 @@
         if(area.innerHTML === '') area.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ยังไม่มีประวัติการขาย</div>';
     }
 
-    // 🔴 แก้ไขฟังก์ชันพิมพ์ใบเสร็จและเข้ารหัสภาษาไทยให้สมบูรณ์
+    // 🔴 ฟังก์ชันสร้างใบเสร็จแบบฝังลิงก์แอปของท่านประธานลงใน QR Code !
     function printReceipt(receiptId) {
         const rcpt = receipts.find(x => x.id === receiptId); if(!rcpt) return; 
         const pond = db.find(p => p.id === rcpt.pondId) || {m:'ไม่ทราบ', p:'ไม่ทราบ', d:'-'};
         
-        // เข้ารหัสภาษาไทยด้วย encodeURIComponent เพื่อป้องกัน URL พัง
-        const rawTraceData = `ตรวจสอบย้อนกลับมาตรฐาน GAP\nเกษตรกร: ${pond.m}\nบ่อ: ${pond.p}\nวันที่ลง: ${pond.d.substring(0,10)}\nสายพันธุ์: กบนา\nกลุ่มวิสาหกิจแปลงใหญ่นครพนม`; 
-        const traceData = encodeURIComponent(rawTraceData); 
-        const qrUrl = `https://quickchart.io/qr?text=${traceData}&size=120`; // ใช้ QuickChart API ที่เสถียรกว่า
+        // แปลงข้อมูลไปเป็น URL พารามิเตอร์ เพื่อส่งไปให้หน้าแอปของเราอ่านค่า
+        const traceUrl = `${MY_WEB_URL}?trace=1&m=${encodeURIComponent(pond.m)}&p=${encodeURIComponent(pond.p)}&d=${encodeURIComponent(pond.d.substring(0,10))}`;
+        
+        // เอา URL ที่ได้ไปสร้างรูป QR Code
+        const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(traceUrl)}&size=150`; 
         
         const printArea = document.getElementById('print-area');
         printArea.innerHTML = `
@@ -286,10 +321,10 @@
                 </div>
             </div>`;
         
-        // หน่วงเวลา 0.8 วินาที ให้รูประบบดาวน์โหลดเสร็จก่อนค่อยเปิดคำสั่ง Print
         setTimeout(() => { window.print(); }, 800); 
     }
 
+    // ส่วนย่อยอื่นๆ
     function populateYears() { const years = [...new Set(db.map(item => new Date(item.d).getFullYear()))].sort((a,b) => b-a); const ySelect = document.getElementById('annualYear'); ySelect.innerHTML = ''; if(years.length === 0) { ySelect.innerHTML = `<option value="${new Date().getFullYear()}">${new Date().getFullYear() + 543}</option>`; return; } years.forEach(y => ySelect.innerHTML += `<option value="${y}">ปี พ.ศ. ${y + 543}</option>`); }
     function renderAnnualReview() { const selectedYear = document.getElementById('annualYear').value; const selectedMember = document.getElementById('annualMember').value; let totalInvest = 0, totalIncome = 0; let buyersSummary = {}; let issueSummary = {}; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { const pondYear = new Date(pond.d).getFullYear().toString(); if (pondYear === selectedYear && (selectedMember === 'ALL' || pond.m === selectedMember)) { totalIncome += Number(pond.i); if(pond.buyer !== '-') { pond.buyer.split(',').forEach(b => { const trimB = b.trim(); if(trimB){ if(!buyersSummary[trimB]) buyersSummary[trimB] = { i: 0 }; buyersSummary[trimB].i += Number(pond.i); } }); } } }); expenses.forEach(e => { const pond = db.find(p => p.id === e.pondId); if(pond) { const pondYear = new Date(pond.d).getFullYear().toString(); if (pondYear === selectedYear && (selectedMember === 'ALL' || pond.m === selectedMember)) totalInvest += e.amount; } }); issues.forEach(iss => { const pond = db.find(p => p.id === iss.pondId); if(pond) { const pondYear = new Date(pond.d).getFullYear().toString(); if (pondYear === selectedYear && (selectedMember === 'ALL' || pond.m === selectedMember)) issueSummary[iss.cat] = (issueSummary[iss.cat] || 0) + 1; } }); const netProfit = totalIncome - totalInvest; document.getElementById('annual-kpi').innerHTML = `<div class="summary-card"><div style="font-size:0.9em; color:#666;">💸 เงินลงทุน</div><div class="summary-value" style="color:var(--orange);">${totalInvest.toLocaleString()} ฿</div></div><div class="summary-card"><div style="font-size:0.9em; color:#666;">💰 รายได้</div><div class="summary-value">${totalIncome.toLocaleString()} ฿</div></div><div class="summary-card ${netProfit >= 0 ? 'summary-green' : 'summary-red'}" style="grid-column: span 2;"><div style="font-size:0.9em; color:#666;">📈 กำไรสุทธิ</div><div class="summary-value">${netProfit.toLocaleString()} ฿</div></div>`; let buyerHtml = ''; for (const [bName, bData] of Object.entries(buyersSummary)) buyerHtml += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;"><span>🛍️ ${bName}</span><span><b style="color:green;">${bData.i.toLocaleString()} ฿</b></span></div>`; document.getElementById('annual-buyers').innerHTML = buyerHtml || '<div style="color:#999; text-align:center;">ยังไม่มีข้อมูลการขายในปีนี้</div>'; let issueHtml = ''; for (const [iName, iCount] of Object.entries(issueSummary)) issueHtml += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;"><span>🚩 ${iName}</span><span style="color:var(--red); font-weight:bold;">พบ ${iCount} ครั้ง</span></div>`; document.getElementById('annual-issues').innerHTML = issueHtml || '<div style="color:#999; text-align:center;">ไม่พบปัญหาการเลี้ยงในปีนี้ 🎉</div>'; }
 
@@ -310,7 +345,6 @@
     let profitChart = null; function renderDashboard() { const memberProfits = {}; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { let cost = 0; expenses.filter(e => e.pondId === pond.id).forEach(e => cost += e.amount); memberProfits[pond.m] = (memberProfits[pond.m] || 0) + (pond.i - cost); }); const ctx = document.getElementById('profitChart').getContext('2d'); if(profitChart) profitChart.destroy(); profitChart = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(memberProfits).length ? Object.keys(memberProfits) : ['ไม่มีข้อมูล'], datasets: [{ label: 'กำไรสุทธิ (บาท)', data: Object.values(memberProfits).length ? Object.values(memberProfits) : [0], backgroundColor: Object.values(memberProfits).map(v => v >= 0 ? '#4caf50' : '#f44336') }] }, options: { maintainAspectRatio: false } }); }
     function exportToExcel() { const qFilter = document.getElementById('filterQuarter').value; const mFilter = document.getElementById('filterMember').value; let excelData = [["สมาชิก", "บ่อ", "เริ่มเลี้ยง", "ยอดขาย(สะสม)", "ต้นทุน", "กำไร", "ผู้รับซื้อ"]]; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { if(mFilter !== 'ALL' && pond.m !== mFilter) return; const q = Math.ceil((new Date(pond.d).getMonth() + 1) / 3); if(qFilter !== 'ALL' && qFilter !== `Q${q}`) return; let cost = 0; expenses.filter(e => e.pondId === pond.id).forEach(e => cost += e.amount); excelData.push([pond.m, pond.p, pond.d.substring(0,10), pond.i, cost, (pond.i - cost), pond.buyer]); }); if(excelData.length === 1) return alert("ไม่มีข้อมูล"); const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(excelData); XLSX.utils.book_append_sheet(wb, ws, "รายงาน"); XLSX.writeFile(wb, `NKP_Report_${mFilter}.xlsx`); }
 
-    window.onload = () => { updateDropdowns(); renderSettings(); loadData(); };
 </script>
 </body>
 </html>

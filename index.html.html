@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NKP Frog Mega-Flow v13.1 (QR Fix)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --main-green: #1b5e20; --blue: #1565c0; --orange: #e65100; --red: #c62828; --purple: #6a1b9a; --dark: #333; --teal: #008080; --gray: #607d8b; }
+        body { font-family: 'Sarabun', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; font-size: 14px; }
+        .header { background: var(--main-green); color: white; padding: 15px; text-align: center; border-radius: 0 0 15px 15px; margin: -10px -10px 15px -10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; width: 100%; margin-top: 5px; box-sizing: border-box; }
+        .bg-green { background: var(--main-green); } .bg-blue { background: var(--blue); } .bg-red { background: var(--red); } .bg-orange { background: var(--orange); } .bg-dark { background: var(--dark); } .bg-teal { background: var(--teal); } .bg-gray { background: var(--gray); }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        .menu-bar { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 8px; white-space: nowrap; }
+        .menu-btn { padding: 10px 15px; background: white; border: 1px solid var(--main-green); border-radius: 20px; cursor: pointer; font-size: 0.9em; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .menu-btn.active { background: var(--main-green); color: white; }
+        input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .section-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-top: 4px solid var(--main-green); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card { background: #fff; padding: 15px; margin-bottom: 10px; border-left: 6px solid #ccc; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card.sold { border-left-color: var(--gray); background: #f5f5f5; }
+        .loader { display: none; position: fixed; top: 15px; right: 15px; background: #ff9800; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.85em; min-width: 600px; }
+        .report-table th, .report-table td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+        .summary-card { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
+        .summary-value { font-size: 1.5em; font-weight: bold; color: var(--blue); margin-top: 5px; }
+        .summary-green { background: #e8f5e9; border-color: #a5d6a7; } .summary-green .summary-value { color: var(--main-green); }
+        .summary-red { background: #ffebee; border-color: #ef9a9a; } .summary-red .summary-value { color: var(--red); }
+
+        #print-area { display: none; }
+        @media print {
+            body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; display: block; padding: 20px; box-sizing: border-box; background: white; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading" class="loader no-print">⏳ กำลังซิงค์ข้อมูล...</div>
+<div id="print-area"></div>
+
+<div class="header no-print">
+    <h2 style="margin: 0;">🐸 NKP Mega-Flow v13.1</h2>
+    <p style="margin: 5px 0 0 0;">ระบบจัดการซัพพลายเชนกบนานครพนม</p>
+</div>
+
+<div class="menu-bar no-print">
+    <button class="menu-btn active" onclick="switchTab('home')">🏠 เลี้ยง/ขาย</button>
+    <button class="menu-btn" onclick="switchTab('history')">🕰️ ประวัติย้อนหลัง</button>
+    <button class="menu-btn" onclick="switchTab('annual')">🗓️ สรุปรายปี</button>
+    <button class="menu-btn" onclick="switchTab('forecast')">🔮 พยากรณ์ผลผลิต</button>
+    <button class="menu-btn" onclick="switchTab('receipt')">🖨️ ออกใบเสร็จ</button>
+    <button class="menu-btn" onclick="switchTab('cost')">💸 ต้นทุน</button>
+    <button class="menu-btn" onclick="switchTab('issue')">🚨 ปัญหา</button>
+    <button class="menu-btn" onclick="switchTab('dashboard')">📊 แดชบอร์ด</button>
+    <button class="menu-btn" onclick="switchTab('report')">📑 รายงาน Excel</button>
+    <button class="menu-btn" onclick="switchTab('settings')">⚙️ ตั้งค่า</button>
+</div>
+
+<div id="home" class="tab-content active no-print">
+    <div class="section-box">
+        <h3 style="margin-top:0;">➕ ลงบ่อรอบใหม่</h3>
+        <select id="mName"><option value="">-- เลือกชื่อสมาชิก --</option></select>
+        <div class="grid-2"><input type="text" id="pondName" placeholder="ชื่อบ่อ (เช่น บ่อ 1)"><input type="text" id="pondSize" placeholder="ขนาดบ่อ (เช่น 4x4 ม.)"></div>
+        <div class="grid-2"><input type="date" id="date"><div style="display:flex; gap:5px;"><input type="number" id="usedMale" placeholder="พ่อพันธุ์ลงบ่อ"><input type="number" id="usedFemale" placeholder="แม่พันธุ์ลงบ่อ"></div></div>
+        <button class="btn bg-green" onclick="addEntry()">บันทึกลงระบบออนไลน์</button>
+    </div>
+    <div id="main-list"></div>
+</div>
+
+<div id="history" class="tab-content no-print">
+    <div class="section-box" style="border-top-color: var(--gray);">
+        <h3 style="color:var(--gray); margin-top:0;">🕰️ ประวัติการเลี้ยงและขายย้อนหลัง</h3>
+        <p style="font-size:0.85em; color:#666;">เรียกดูข้อมูลบ่อที่ปิดยอดไปแล้ว สามารถกรองหาวัน/เดือน/ปีที่ต้องการได้</p>
+        
+        <div class="grid-2">
+            <select id="histMember" onchange="renderHistory()"></select>
+            <select id="histType" onchange="updateHistInput()">
+                <option value="ALL">ดูประวัติทั้งหมด</option>
+                <option value="DAY">ระบุรายวัน</option>
+                <option value="MONTH">ระบุรายเดือน</option>
+                <option value="YEAR">ระบุรายปี</option>
+            </select>
+        </div>
+        <div id="histInputContainer" style="margin-bottom:10px;"></div>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<div id="annual" class="tab-content no-print">
+    <div class="section-box" style="border-top-color: var(--blue);">
+        <h3 style="color:var(--blue); margin-top:0;">🗓️ สรุปผลประกอบการรายปี</h3>
+        <div class="grid-2"><select id="annualYear" onchange="renderAnnualReview()"></select><select id="annualMember" onchange="renderAnnualReview()"><option value="ALL">ภาพรวมกลุ่ม (ทุกคน)</option></select></div>
+        <div id="annual-kpi" class="grid-2" style="margin-top: 15px;"></div>
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h4 style="color: var(--dark); margin-top:0;">🤝 สรุปการขาย (ขายให้ใครบ้าง?)</h4><div id="annual-buyers" style="font-size: 0.9em;"></div></div>
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h4 style="color: var(--red); margin-top:0;">🚨 สรุปปัญหาที่พบในปีนี้</h4><div id="annual-issues" style="font-size: 0.9em;"></div></div>
+    </div>
+</div>
+
+<div id="forecast" class="tab-content no-print"><div class="section-box" style="border-top-color: var(--teal);"><h3 style="color:var(--teal); margin-top:0;">🔮 ปฏิทินพยากรณ์ผลผลิตล่วงหน้า</h3><div id="forecast-list"></div></div></div>
+
+<div id="receipt" class="tab-content no-print">
+    <div class="section-box" style="border-top-color: var(--dark);"><h3 style="color:var(--dark); margin-top:0;">🖨️ ออกใบเสร็จรับเงิน (มี QR Code)</h3>
+    <p style="font-size:0.85em; color:#666;">ประวัติการขายรายครั้ง (แบ่งขาย/ขายเหมา)</p><div id="receipt-list"></div></div>
+</div>
+
+<div id="cost" class="tab-content no-print">
+    <div class="section-box" style="border-top-color: var(--orange);">
+        <h3 style="color:var(--orange); margin-top:0;">💸 บันทึกต้นทุน/รายจ่าย</h3>
+        <select id="costPondSelect" onchange="renderCostHistory()"></select>
+        <div class="grid-2"><select id="costType"><option>ค่าอาหาร</option><option>ค่าพันธุ์</option><option>ค่าแรงจ้าง</option><option>ค่าก่อสร้างบ่อ</option><option>ค่ายา/วิตามิน</option><option>อื่นๆ</option></select><input type="number" id="costAmount" placeholder="ยอดเงิน (บาท)"></div>
+        <button class="btn bg-orange" onclick="addCost()">บันทึกรายจ่าย</button>
+    </div>
+    <div id="cost-history" class="section-box"></div>
+</div>
+
+<div id="issue" class="tab-content no-print">
+    <div class="section-box" style="border-top-color: var(--red);">
+        <h3 style="color:var(--red); margin-top:0;">🚨 บันทึกปัญหาการเลี้ยง</h3>
+        <select id="issuePondSelect"></select>
+        <select id="issueCategory"><option>โรคระบาด / สุขภาพกบ</option><option>สภาพอากาศ / น้ำเสีย</option><option>กบโตช้า / กินกันเอง</option><option>การตลาด / ราคา</option><option>อื่นๆ</option></select>
+        <textarea id="issueDetail" placeholder="อธิบายปัญหาที่พบ..." rows="2"></textarea>
+        <textarea id="issueSolution" placeholder="แนวทางแก้ไข / ความต้องการ..." rows="2"></textarea>
+        <button class="btn bg-red" onclick="addIssue()">บันทึกข้อมูลวิเคราะห์</button>
+    </div>
+    <div id="issue-history" class="section-box"></div>
+</div>
+
+<div id="dashboard" class="tab-content no-print"><div class="section-box" style="border-top-color: var(--purple);"><h3 style="color:var(--purple); margin-top:0;">📊 แดชบอร์ดสรุปกลุ่ม</h3><button class="btn" style="background:var(--purple); margin-bottom:15px;" onclick="renderDashboard()">🔄 อัปเดตข้อมูล</button><div style="height: 250px;"><canvas id="profitChart"></canvas></div></div></div>
+
+<div id="report" class="tab-content no-print">
+    <div class="section-box" style="border-top-color: var(--blue);">
+        <h3 style="color:var(--blue); margin-top:0;">📑 รายงานผลประกอบการ</h3>
+        <div class="grid-2"><select id="filterQuarter" onchange="renderReportTable()"><option value="ALL">ทุกไตรมาส</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option></select><select id="filterMember" onchange="renderReportTable()"><option value="ALL">รายกลุ่ม</option></select></div>
+        <div style="overflow-x: auto; margin-top: 10px;"><table class="report-table"><thead style="background:#f5f5f5;"><tr><th>สมาชิก</th><th>บ่อ</th><th>รายได้</th><th>ต้นทุน</th><th>กำไร</th></tr></thead><tbody id="report-body"></tbody><tfoot id="report-footer" style="background:#e8f5e9; font-weight:bold;"></tfoot></table></div>
+        <button class="btn bg-blue" style="margin-top:15px;" onclick="exportToExcel()">📥 ดาวน์โหลด Excel</button>
+    </div>
+</div>
+
+<div id="settings" class="tab-content no-print">
+    <div class="section-box">
+        <h3 style="margin-top:0;">👥 ทะเบียนรายชื่อสมาชิก</h3>
+        <input type="text" id="newMemberName" placeholder="ชื่อ-นามสกุล สมาชิก">
+        <div class="grid-2"><input type="tel" id="newMemberPhone" placeholder="เบอร์โทรศัพท์"><input type="text" id="newMemberArea" placeholder="พื้นที่ฟาร์ม (เช่น 2 ไร่)"></div>
+        <div class="grid-2"><input type="number" id="newMemberTotalMale" placeholder="พ่อพันธุ์(ตัว)"><input type="number" id="newMemberTotalFemale" placeholder="แม่พันธุ์(ตัว)"></div>
+        <button class="btn bg-green" id="btnSaveMember" onclick="saveMember()">+ บันทึกสมาชิก</button>
+        <div id="member-list" style="margin-top: 15px;"></div>
+    </div>
+    <div class="section-box" style="border-top-color: #9c27b0;">
+        <h3 style="color:#9c27b0; margin-top:0;">🛍️ ทะเบียนแม่ค้า/ผู้รับซื้อ</h3>
+        <div style="display:flex; gap:5px;"><input type="text" id="newMerchantName" placeholder="ชื่อแม่ค้า"><button class="btn" id="btnSaveMerchant" style="background:#9c27b0; width:auto; padding:0 20px; margin-top:0;" onclick="saveMerchant()">บันทึก</button></div>
+        <div id="merchant-list" style="margin-top: 10px;"></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxNL8xdDCgDXyEW8G-OrimMstvZISeXLLnCRZC4x3jo6Fg08LqanHm_QsyFlA5tCmZz/exec"; 
+    
+    let db = []; 
+    let expenses = JSON.parse(localStorage.getItem('nkp_expenses') || '[]'); 
+    let issues = JSON.parse(localStorage.getItem('nkp_issues') || '[]');
+    let receipts = JSON.parse(localStorage.getItem('nkp_receipts') || '[]'); 
+    let members = JSON.parse(localStorage.getItem('nkp_members_v2') || '[{"id":1,"name":"นางสาวระเบียบ บัวชุม"},{"id":2,"name":"นางสาวเพ็ญนภา บุตรดี"},{"id":3,"name":"นางทวีสุข อรรถประจง"},{"id":4,"name":"นางสาวขนิษฐา อรรถประจง"},{"id":5,"name":"นายสุรสิทธิ์ นินทรา"},{"id":6,"name":"นางสาวดาราศรี นินทรา"},{"id":7,"name":"นางสาวจุฑารัตน์ ชูประดิษฐ์"},{"id":8,"name":"นายสันติ สุนีย์"},{"id":9,"name":"นางติ๋ม กรกัณฑ์"},{"id":10,"name":"นายประจวบ อินนะระ"},{"id":11,"name":"นางสายฝน แสนกาสา"},{"id":12,"name":"นางวรุณยุพา จันทะนะ"},{"id":13,"name":"นางทองพิษ มะหุวัน"},{"id":14,"name":"นายประเทือง อัคพิน"},{"id":15,"name":"นายวัชราภรณ์ โกพล"},{"id":16,"name":"นางสาวเนตรชนก โกพล"},{"id":17,"name":"นางเดือน พนาลิกุล"},{"id":18,"name":"นายสุมิตร สอนสุข"},{"id":19,"name":"นางกองสี ภูมิมาลา"},{"id":20,"name":"นางแนวดี สิทธนู"},{"id":21,"name":"นางสว่าง สุนีย์"},{"id":22,"name":"นางสาวคำพูสา โคตะ"},{"id":23,"name":"นายแสงเพชร อรรคศรีวร"},{"id":24,"name":"น.ส.อนงค์ลักษณ์ อรัญ"},{"id":25,"name":"นายวรชัย ชาศรี"},{"id":26,"name":"น.ส.ศรีสมรแก้ว สุนนท์"},{"id":27,"name":"นายอดิเรก สุขรี"},{"id":28,"name":"นางพันปี ไชยวงษ์วัฒน์"},{"id":29,"name":"นายยุทธนา ธนะกลม"},{"id":30,"name":"นายวีระยุทธ ว่องไว"}]'); 
+    let merchants = JSON.parse(localStorage.getItem('nkp_merchants') || '[{"id":1,"name":"เจ๊สม ตลาดสด"}]');
+    let editingMemberId = null; let editingMerchantId = null;
+
+    function showLoad(show) { document.getElementById('loading').style.display = show ? 'block' : 'none'; }
+
+    async function loadData() {
+        showLoad(true);
+        try { const res = await fetch(API_URL); db = await res.json(); renderMain(); updateDropdowns(); populateYears(); } 
+        catch (e) { console.error("Connect Error"); }
+        showLoad(false);
+    }
+
+    async function addEntry() {
+        const entry = { id: Date.now(), m: document.getElementById('mName').value, p: document.getElementById('pondName').value, d: document.getElementById('date').value, size: document.getElementById('pondSize').value || '-', male: document.getElementById('usedMale').value || 0, female: document.getElementById('usedFemale').value || 0, st: 'growing', w: 0, pr: 0, i: 0, buyer: '-' };
+        if(!entry.m || !entry.p || !entry.d) return alert("กรุณากรอกข้อมูลให้ครบ");
+        db.push(entry); renderMain(); updateDropdowns(); document.getElementById('pondName').value = '';
+        showLoad(true); try { await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "add", data: entry }) }); alert("เปิดบ่อใหม่สำเร็จ!"); } catch (e) { alert("บันทึกไม่สำเร็จ"); } showLoad(false);
+    }
+
+    async function sell(id, isFinal) {
+        const idx = db.findIndex(x => x.id === id); const w = Number(document.getElementById(`w_${id}`).value); const p = Number(document.getElementById(`p_${id}`).value); const b = document.getElementById(`b_${id}`).value;
+        if(!w || !p || !b) return alert("กรุณาใส่น้ำหนัก, ราคา และเลือกแม่ค้า");
+        const incomeThisTime = w * p;
+        const receiptData = { id: Date.now(), pondId: id, date: new Date().toISOString(), w: w, pr: p, i: incomeThisTime, buyer: b };
+        receipts.push(receiptData); localStorage.setItem('nkp_receipts', JSON.stringify(receipts));
+        
+        db[idx].w = Number(db[idx].w) + w; db[idx].pr = p; db[idx].i = Number(db[idx].i) + incomeThisTime; 
+        if(db[idx].buyer === '-' || db[idx].buyer === '') db[idx].buyer = b; else if(!db[idx].buyer.includes(b)) db[idx].buyer += `, ${b}`;
+        if(isFinal) { if(confirm("คุณต้องการปิดบ่อนี้เลยใช่หรือไม่? (จะไม่สามารถบันทึกขายเพิ่มได้อีก)")) { db[idx].st = 'sold'; } else { return; } }
+        
+        renderMain(); updateDropdowns();
+        showLoad(true); 
+        try { await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "sell", data: db[idx] }) }); alert(isFinal ? "ปิดบ่อและบันทึกยอดขายสำเร็จ!" : "บันทึกแบ่งขายสำเร็จ!"); } catch (e) { alert("บันทึกไม่สำเร็จ"); } showLoad(false);
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active'); event.target.classList.add('active');
+        if(tabId === 'annual') renderAnnualReview(); if(tabId === 'dashboard') renderDashboard(); if(tabId === 'report') renderReportTable(); if(tabId === 'settings') renderSettings(); if(tabId === 'forecast') renderForecast(); if(tabId === 'receipt') renderReceiptList(); if(tabId === 'issue') renderIssueHistory(); 
+        if(tabId === 'history') { updateHistInput(); renderHistory(); }
+        updateDropdowns();
+    }
+
+    function updateDropdowns() {
+        let mOpts = '<option value="">-- เลือกชื่อสมาชิก --</option>'; let fOpts = '<option value="ALL">รายกลุ่ม (ทุกคน)</option>';
+        members.forEach(m => { mOpts += `<option value="${m.name}">${m.name}</option>`; fOpts += `<option value="${m.name}">${m.name}</option>`; });
+        document.getElementById('mName').innerHTML = mOpts; document.getElementById('filterMember').innerHTML = fOpts; document.getElementById('annualMember').innerHTML = fOpts; document.getElementById('histMember').innerHTML = fOpts;
+        let cOpts = '<option value="">-- เลือกบ่อที่ต้องการบันทึก --</option>'; const growingPonds = db.filter(i => i.st === 'growing');
+        if(growingPonds.length > 0) growingPonds.forEach(i => cOpts += `<option value="${i.id}">${i.m} - ${i.p}</option>`); else cOpts = '<option value="">-- ยังไม่มีบ่อที่กำลังเลี้ยง --</option>';
+        document.getElementById('costPondSelect').innerHTML = cOpts; document.getElementById('issuePondSelect').innerHTML = cOpts; renderCostHistory();
+    }
+
+    function renderMain() {
+        const area = document.getElementById('main-list'); area.innerHTML = ''; let merchOpts = '<option value="">-- เลือกแม่ค้า --</option>'; merchants.forEach(m => merchOpts += `<option value="${m.name}">${m.name}</option>`);
+        db.filter(i => i.st === 'growing').reverse().forEach(item => {
+            const hasSoldBefore = Number(item.i) > 0;
+            area.innerHTML += `<div class="card"><div style="font-weight:bold; font-size:1.1em; color:var(--main-green)">${item.m}</div><div style="color:#555; margin-bottom: 5px;"><b>บ่อ:</b> ${item.p} (${item.size}) | <b>เริ่ม:</b> ${item.d.substring(0,10)}</div>${hasSoldBefore ? `<div style="background:#fff3e0; color:var(--orange); padding:5px; border-radius:4px; font-size:0.85em; margin-bottom:5px;">📊 แบ่งขายไปแล้ว: ${item.w} กก. (ยอดสะสม ${Number(item.i).toLocaleString()} ฿)</div>` : ''}<div style="margin-top:5px; padding-top:10px; border-top: 1px dashed #ddd;"><div class="grid-2"><input type="number" id="w_${item.id}" placeholder="นน.จับรอบนี้ (กก.)"><input type="number" id="p_${item.id}" placeholder="ราคา/กก."></div><select id="b_${item.id}" style="margin-bottom:5px;">${merchOpts}</select><div class="grid-2"><button onclick="sell(${item.id}, false)" class="btn bg-orange">🧺 แบ่งขาย</button><button onclick="sell(${item.id}, true)" class="btn bg-red">🛑 ปิดบ่อ</button></div></div></div>`;
+        });
+        if(area.innerHTML === '') area.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">ไม่มีบ่อที่กำลังเลี้ยงในขณะนี้</div>';
+    }
+
+    function updateHistInput() {
+        const type = document.getElementById('histType').value; const container = document.getElementById('histInputContainer');
+        if(type === 'ALL') { container.innerHTML = ''; } else if(type === 'DAY') { container.innerHTML = '<input type="date" id="histDate" onchange="renderHistory()" style="width:100%;">'; } else if(type === 'MONTH') { container.innerHTML = '<input type="month" id="histMonth" onchange="renderHistory()" style="width:100%;">'; } else if(type === 'YEAR') { const years = [...new Set(db.map(item => new Date(item.d).getFullYear()))].sort((a,b) => b-a); let opts = ''; years.forEach(y => opts += `<option value="${y}">ปี พ.ศ. ${y + 543}</option>`); container.innerHTML = `<select id="histYear" onchange="renderHistory()" style="width:100%;">${opts}</select>`; }
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const area = document.getElementById('history-list'); area.innerHTML = '';
+        const mFilter = document.getElementById('histMember').value; const type = document.getElementById('histType').value;
+        let filtered = db.filter(i => i.st === 'sold'); if(mFilter !== 'ALL') filtered = filtered.filter(i => i.m === mFilter);
+        if(type === 'DAY') { const dVal = document.getElementById('histDate')?.value; if(dVal) filtered = filtered.filter(i => i.d.startsWith(dVal)); } else if(type === 'MONTH') { const mVal = document.getElementById('histMonth')?.value; if(mVal) filtered = filtered.filter(i => i.d.startsWith(mVal)); } else if(type === 'YEAR') { const yVal = document.getElementById('histYear')?.value; if(yVal) filtered = filtered.filter(i => new Date(i.d).getFullYear().toString() === yVal); }
+        let html = '';
+        filtered.reverse().forEach(item => { html += `<div class="card sold"><div style="display:flex; justify-content:space-between; margin-bottom:5px;"><b style="color:var(--dark); font-size:1.1em;">${item.m}</b><span style="font-size:0.8em; background:#e0e0e0; padding:2px 6px; border-radius:10px; color:#555;">ปิดบ่อแล้ว</span></div><div style="color:#666; font-size:0.9em; margin-bottom: 5px;">บ่อ: ${item.p} (${item.size}) | วันที่ลง: ${item.d.substring(0,10)}</div><div style="background:#fff; border:1px solid #ddd; padding:8px; border-radius:4px; font-size:0.95em;">✅ ผลผลิตรวม: <b>${Number(item.w).toLocaleString()} กก.</b><br>💰 ยอดขายรวม: <b style="color:var(--main-green);">${Number(item.i).toLocaleString()} บาท</b><br>🤝 ผู้รับซื้อ: ${item.buyer}</div></div>`; });
+        area.innerHTML = html || '<div style="text-align:center; padding:20px; color:#999;">ไม่พบประวัติการเลี้ยงในช่วงเวลาที่เลือก</div>';
+    }
+
+    function renderReceiptList() {
+        const area = document.getElementById('receipt-list'); area.innerHTML = '';
+        [...receipts].reverse().forEach(rcpt => { const pond = db.find(p => p.id === rcpt.pondId) || {m:'ไม่ทราบ', p:'ไม่ทราบ'}; area.innerHTML += `<div class="card" style="border-left-color: var(--dark); display:flex; justify-content:space-between; align-items:center;"><div><b>${pond.m}</b> ➡️ ${rcpt.buyer}<br><small style="color:#666;">บ่อ: ${pond.p} | ขายนัด: ${new Date(rcpt.date).toLocaleDateString('th-TH')} | ${rcpt.w} กก.</small><br><b style="color:var(--main-green);">${Number(rcpt.i).toLocaleString()} บาท</b></div><button onclick="printReceipt(${rcpt.id})" class="btn bg-dark" style="width:auto; padding:8px 15px; margin:0;">🖨️ พิมพ์บิล</button></div>`; });
+        if(area.innerHTML === '') area.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ยังไม่มีประวัติการขาย</div>';
+    }
+
+    // 🔴 แก้ไขฟังก์ชันพิมพ์ใบเสร็จและเข้ารหัสภาษาไทยให้สมบูรณ์
+    function printReceipt(receiptId) {
+        const rcpt = receipts.find(x => x.id === receiptId); if(!rcpt) return; 
+        const pond = db.find(p => p.id === rcpt.pondId) || {m:'ไม่ทราบ', p:'ไม่ทราบ', d:'-'};
+        
+        // เข้ารหัสภาษาไทยด้วย encodeURIComponent เพื่อป้องกัน URL พัง
+        const rawTraceData = `ตรวจสอบย้อนกลับมาตรฐาน GAP\nเกษตรกร: ${pond.m}\nบ่อ: ${pond.p}\nวันที่ลง: ${pond.d.substring(0,10)}\nสายพันธุ์: กบนา\nกลุ่มวิสาหกิจแปลงใหญ่นครพนม`; 
+        const traceData = encodeURIComponent(rawTraceData); 
+        const qrUrl = `https://quickchart.io/qr?text=${traceData}&size=120`; // ใช้ QuickChart API ที่เสถียรกว่า
+        
+        const printArea = document.getElementById('print-area');
+        printArea.innerHTML = `
+            <div style="font-family: 'Sarabun', sans-serif; color: #000; max-width: 800px; margin: 0 auto; border: 1px solid #ccc; padding: 30px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px; border-bottom: 2px solid #1b5e20; padding-bottom: 15px;">
+                    <div>
+                        <h2 style="margin:0; color:#1b5e20;">วิสาหกิจชุมชนแปลงใหญ่กบนานครพนม</h2>
+                        <h3 style="margin:5px 0 0 0;">ใบเสร็จรับเงิน / รับซื้อผลผลิต</h3>
+                        <div style="margin-top:10px; font-size:1.1em;"><b>ผู้รับเงิน (เกษตรกร):</b> ${pond.m}</div>
+                        <div style="margin-top:5px; font-size:1.1em;"><b>ผู้จ่ายเงิน (แม่ค้า):</b> ${rcpt.buyer}</div>
+                        <div style="margin-top:5px; font-size:0.9em; color:#666;">วันที่ทำรายการ: ${new Date(rcpt.date).toLocaleDateString('th-TH')}</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <img src="${qrUrl}" alt="QR" style="border: 1px solid #ddd; padding: 5px;">
+                        <div style="font-size:0.75em; margin-top:5px;">สแกนตรวจสอบย้อนกลับ</div>
+                    </div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead><tr style="background:#eee;"><th style="border: 1px solid #000; padding: 10px; text-align:left;">รายการ</th><th style="border: 1px solid #000; padding: 10px;">น้ำหนัก(กก.)</th><th style="border: 1px solid #000; padding: 10px;">ราคา/กก.</th><th style="border: 1px solid #000; padding: 10px;">รวม(บาท)</th></tr></thead>
+                    <tbody><tr><td style="border: 1px solid #000; padding: 10px;">ผลผลิตกบนา (รหัสบ่อ: ${pond.p})</td><td style="border: 1px solid #000; padding: 10px; text-align:center;">${Number(rcpt.w).toLocaleString()}</td><td style="border: 1px solid #000; padding: 10px; text-align:center;">${Number(rcpt.pr).toLocaleString()}</td><td style="border: 1px solid #000; padding: 10px; text-align:right;">${Number(rcpt.i).toLocaleString()}</td></tr></tbody>
+                </table>
+                <div style="text-align: right; font-size: 1.3em; font-weight: bold; margin-bottom: 50px;">ยอดเงินรวมสุทธิ: <span style="color:#1b5e20;">${Number(rcpt.i).toLocaleString()} บาท</span></div>
+                <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 50px;">
+                    <div><div style="border-bottom: 1px dotted #000; width: 200px; margin-bottom: 5px; height: 30px;"></div>ลงชื่อ ผู้จ่ายเงิน<br>( ${rcpt.buyer} )</div>
+                    <div><div style="border-bottom: 1px dotted #000; width: 200px; margin-bottom: 5px; height: 30px;"></div>ลงชื่อ ผู้รับเงิน<br>( ${pond.m} )</div>
+                </div>
+            </div>`;
+        
+        // หน่วงเวลา 0.8 วินาที ให้รูประบบดาวน์โหลดเสร็จก่อนค่อยเปิดคำสั่ง Print
+        setTimeout(() => { window.print(); }, 800); 
+    }
+
+    function populateYears() { const years = [...new Set(db.map(item => new Date(item.d).getFullYear()))].sort((a,b) => b-a); const ySelect = document.getElementById('annualYear'); ySelect.innerHTML = ''; if(years.length === 0) { ySelect.innerHTML = `<option value="${new Date().getFullYear()}">${new Date().getFullYear() + 543}</option>`; return; } years.forEach(y => ySelect.innerHTML += `<option value="${y}">ปี พ.ศ. ${y + 543}</option>`); }
+    function renderAnnualReview() { const selectedYear = document.getElementById('annualYear').value; const selectedMember = document.getElementById('annualMember').value; let totalInvest = 0, totalIncome = 0; let buyersSummary = {}; let issueSummary = {}; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { const pondYear = new Date(pond.d).getFullYear().toString(); if (pondYear === selectedYear && (selectedMember === 'ALL' || pond.m === selectedMember)) { totalIncome += Number(pond.i); if(pond.buyer !== '-') { pond.buyer.split(',').forEach(b => { const trimB = b.trim(); if(trimB){ if(!buyersSummary[trimB]) buyersSummary[trimB] = { i: 0 }; buyersSummary[trimB].i += Number(pond.i); } }); } } }); expenses.forEach(e => { const pond = db.find(p => p.id === e.pondId); if(pond) { const pondYear = new Date(pond.d).getFullYear().toString(); if (pondYear === selectedYear && (selectedMember === 'ALL' || pond.m === selectedMember)) totalInvest += e.amount; } }); issues.forEach(iss => { const pond = db.find(p => p.id === iss.pondId); if(pond) { const pondYear = new Date(pond.d).getFullYear().toString(); if (pondYear === selectedYear && (selectedMember === 'ALL' || pond.m === selectedMember)) issueSummary[iss.cat] = (issueSummary[iss.cat] || 0) + 1; } }); const netProfit = totalIncome - totalInvest; document.getElementById('annual-kpi').innerHTML = `<div class="summary-card"><div style="font-size:0.9em; color:#666;">💸 เงินลงทุน</div><div class="summary-value" style="color:var(--orange);">${totalInvest.toLocaleString()} ฿</div></div><div class="summary-card"><div style="font-size:0.9em; color:#666;">💰 รายได้</div><div class="summary-value">${totalIncome.toLocaleString()} ฿</div></div><div class="summary-card ${netProfit >= 0 ? 'summary-green' : 'summary-red'}" style="grid-column: span 2;"><div style="font-size:0.9em; color:#666;">📈 กำไรสุทธิ</div><div class="summary-value">${netProfit.toLocaleString()} ฿</div></div>`; let buyerHtml = ''; for (const [bName, bData] of Object.entries(buyersSummary)) buyerHtml += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;"><span>🛍️ ${bName}</span><span><b style="color:green;">${bData.i.toLocaleString()} ฿</b></span></div>`; document.getElementById('annual-buyers').innerHTML = buyerHtml || '<div style="color:#999; text-align:center;">ยังไม่มีข้อมูลการขายในปีนี้</div>'; let issueHtml = ''; for (const [iName, iCount] of Object.entries(issueSummary)) issueHtml += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;"><span>🚩 ${iName}</span><span style="color:var(--red); font-weight:bold;">พบ ${iCount} ครั้ง</span></div>`; document.getElementById('annual-issues').innerHTML = issueHtml || '<div style="color:#999; text-align:center;">ไม่พบปัญหาการเลี้ยงในปีนี้ 🎉</div>'; }
+
+    function renderSettings() { const mList = document.getElementById('member-list'); mList.innerHTML = ''; members.forEach(m => { mList.innerHTML += `<div class="card" style="padding:10px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:bold; color:var(--blue);">👤 ${m.name}</div><div style="font-size:0.85em; color:#666;">📞 โทร: ${m.phone || '-'}<br>🏡 พื้นที่: ${m.area || '-'}<br>🧬 พ่อแม่พันธุ์: ${m.totalMale || 0} x ${m.totalFemale || 0} ตัว</div></div><div style="display:flex; gap:5px; flex-direction:column;"><button onclick="editMember(${m.id})" class="btn bg-gray" style="padding:5px 10px; margin:0;">แก้ไข</button><button onclick="deleteMember(${m.id})" class="btn bg-red" style="padding:5px 10px; margin:0;">ลบ</button></div></div></div>`; }); const merList = document.getElementById('merchant-list'); merList.innerHTML = ''; merchants.forEach(m => { merList.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:5px 0;"><span>🛍️ ${m.name}</span><div style="display:flex; gap:5px;"><button onclick="editMerchant(${m.id})" class="btn bg-gray" style="padding:5px 10px; margin:0;">แก้ไข</button><button onclick="deleteMerchant(${m.id})" class="btn bg-dark" style="padding:5px 10px; margin:0;">ลบ</button></div></div>`; }); }
+    function saveMember() { const name = document.getElementById('newMemberName').value; if(!name) return alert('กรุณาใส่ชื่อสมาชิก'); if (editingMemberId) { const idx = members.findIndex(m => m.id === editingMemberId); members[idx] = { ...members[idx], name: name, phone: document.getElementById('newMemberPhone').value, area: document.getElementById('newMemberArea').value, totalMale: document.getElementById('newMemberTotalMale').value, totalFemale: document.getElementById('newMemberTotalFemale').value }; editingMemberId = null; document.getElementById('btnSaveMember').innerText = "+ บันทึกสมาชิก"; document.getElementById('btnSaveMember').className = "btn bg-green"; } else { members.push({ id: Date.now(), name: name, phone: document.getElementById('newMemberPhone').value, area: document.getElementById('newMemberArea').value, totalMale: document.getElementById('newMemberTotalMale').value, totalFemale: document.getElementById('newMemberTotalFemale').value }); } localStorage.setItem('nkp_members_v2', JSON.stringify(members)); document.getElementById('newMemberName').value=''; document.getElementById('newMemberPhone').value=''; document.getElementById('newMemberArea').value=''; document.getElementById('newMemberTotalMale').value=''; document.getElementById('newMemberTotalFemale').value=''; renderSettings(); updateDropdowns(); }
+    function editMember(id) { const m = members.find(x => x.id === id); document.getElementById('newMemberName').value = m.name; document.getElementById('newMemberPhone').value = m.phone || ''; document.getElementById('newMemberArea').value = m.area || ''; document.getElementById('newMemberTotalMale').value = m.totalMale || ''; document.getElementById('newMemberTotalFemale').value = m.totalFemale || ''; editingMemberId = id; document.getElementById('btnSaveMember').innerText = "💾 บันทึกแก้ไข"; document.getElementById('btnSaveMember').className = "btn bg-orange"; window.scrollTo(0, 0); }
+    function deleteMember(id) { if(confirm("ยืนยันการลบ?")) { members = members.filter(m => m.id !== id); localStorage.setItem('nkp_members_v2', JSON.stringify(members)); renderSettings(); updateDropdowns(); } }
+    function saveMerchant() { const v = document.getElementById('newMerchantName').value; if(!v) return; if(editingMerchantId) { const idx = merchants.findIndex(m => m.id === editingMerchantId); merchants[idx].name = v; editingMerchantId = null; document.getElementById('btnSaveMerchant').innerText = "บันทึก"; } else { merchants.push({id:Date.now(), name:v}); } localStorage.setItem('nkp_merchants', JSON.stringify(merchants)); document.getElementById('newMerchantName').value=''; renderSettings(); renderMain(); }
+    function editMerchant(id) { const m = merchants.find(x => x.id === id); document.getElementById('newMerchantName').value = m.name; editingMerchantId = id; document.getElementById('btnSaveMerchant').innerText = "อัปเดต"; }
+    function deleteMerchant(id) { if(confirm("ยืนยันการลบ?")) { merchants = merchants.filter(m => m.id !== id); localStorage.setItem('nkp_merchants', JSON.stringify(merchants)); renderSettings(); renderMain(); } }
+
+    function addCost() { const pId = document.getElementById('costPondSelect').value; const amt = document.getElementById('costAmount').value; if(!pId || !amt) return alert("เลือกบ่อและใส่ยอดเงิน"); expenses.push({ id: Date.now(), pondId: Number(pId), date: new Date().toLocaleDateString('th-TH'), type: document.getElementById('costType').value, amount: Number(amt) }); localStorage.setItem('nkp_expenses', JSON.stringify(expenses)); document.getElementById('costAmount').value = ''; renderCostHistory(); alert("บันทึกต้นทุนแล้ว!"); }
+    function renderCostHistory() { const pId = Number(document.getElementById('costPondSelect').value); let html = '', total = 0; if(!pId) { document.getElementById('cost-history').innerHTML = '<div style="text-align:center; color:#999;">เลือกบ่อเพื่อดูบัญชี</div>'; return; } expenses.filter(e => e.pondId === pId).forEach(e => { total += e.amount; html += `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #ddd; padding:5px 0;"><span><small style="color:#666;">${e.date}</small> ${e.type}</span><span style="color:red;">-${Number(e.amount).toLocaleString()} ฿</span></div>`; }); document.getElementById('cost-history').innerHTML = html ? (html + `<div style="text-align:right; margin-top:10px;">รวม: <b style="color:red;">${total.toLocaleString()} บาท</b></div>`) : '<div style="text-align:center; color:#999;">ยังไม่มีต้นทุน</div>'; }
+    function addIssue() { const pId = document.getElementById('issuePondSelect').value; const detail = document.getElementById('issueDetail').value; if(!pId || !detail) return alert("เลือกบ่อและระบุปัญหา"); issues.push({ id: Date.now(), pondId: Number(pId), date: new Date().toLocaleDateString('th-TH'), cat: document.getElementById('issueCategory').value, detail, solution: document.getElementById('issueSolution').value }); localStorage.setItem('nkp_issues', JSON.stringify(issues)); document.getElementById('issueDetail').value = ''; document.getElementById('issueSolution').value = ''; renderIssueHistory(); alert("บันทึกแล้ว"); }
+    function renderIssueHistory() { const area = document.getElementById('issue-history'); area.innerHTML = ''; [...issues].reverse().forEach(iss => { const pond = db.find(p => p.id === iss.pondId) || {m:'ไม่ทราบ', p:''}; area.innerHTML += `<div class="card" style="border-left-color:var(--red); font-size:0.9em; padding:10px;"><b>${pond.m} - ${pond.p}</b> [${iss.cat}]<br>🚩 ${iss.detail}<br>💡 ${iss.solution || '-'}</div>`; }); }
+    function renderForecast() { const area = document.getElementById('forecast-list'); area.innerHTML = ''; const today = new Date(); const forecasts = []; db.filter(i => i.st === 'growing').forEach(pond => { const startDate = new Date(pond.d); const harvestDate = new Date(startDate); harvestDate.setDate(startDate.getDate() + 30); const daysLeft = Math.floor((harvestDate - today) / (1000 * 60 * 60 * 24)); forecasts.push({ ...pond, harvestDate, daysLeft }); }); forecasts.sort((a, b) => a.daysLeft - b.daysLeft); forecasts.forEach(f => { let statusColor = f.daysLeft <= 5 ? "var(--red)" : (f.daysLeft <= 15 ? "var(--orange)" : "var(--main-green)"); let statusText = f.daysLeft <= 0 ? "ถึงกำหนด!" : `อีก ${f.daysLeft} วัน`; area.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #ddd; padding:10px 0; align-items:center;"><div><b style="color:var(--dark);">${f.m}</b> (บ่อ: ${f.p})<br><span style="font-size:0.85em; color:#666;">จับ: ${f.harvestDate.toLocaleDateString('th-TH')}</span></div><div style="color:${statusColor}; font-weight:bold; text-align:right;">${statusText}</div></div>`; }); if(forecasts.length === 0) area.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่มีผลผลิตในปฏิทิน</div>'; }
+    function renderReportTable() { const qFilter = document.getElementById('filterQuarter').value; const mFilter = document.getElementById('filterMember').value; const body = document.getElementById('report-body'); body.innerHTML = ''; let sumI = 0, sumC = 0, sumP = 0; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { if(mFilter !== 'ALL' && pond.m !== mFilter) return; const month = new Date(pond.d).getMonth() + 1; const q = Math.ceil(month / 3); if(qFilter !== 'ALL' && qFilter !== `Q${q}`) return; let cost = 0; expenses.filter(e => e.pondId === pond.id).forEach(e => cost += e.amount); let profit = pond.i - cost; sumI += pond.i; sumC += cost; sumP += profit; body.innerHTML += `<tr><td style="text-align:left;">${pond.m}<br><small>${pond.p}</small></td><td>${pond.i.toLocaleString()}</td><td style="color:red;">${cost.toLocaleString()}</td><td style="color:${profit>=0?'green':'red'}">${profit.toLocaleString()}</td></tr>`; }); document.getElementById('report-footer').innerHTML = `<tr><td style="text-align:right;">รวมยอด:</td><td>${sumI.toLocaleString()}</td><td style="color:red;">${sumC.toLocaleString()}</td><td style="color:${sumP>=0?'green':'red'}">${sumP.toLocaleString()}</td></tr>`; }
+    let profitChart = null; function renderDashboard() { const memberProfits = {}; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { let cost = 0; expenses.filter(e => e.pondId === pond.id).forEach(e => cost += e.amount); memberProfits[pond.m] = (memberProfits[pond.m] || 0) + (pond.i - cost); }); const ctx = document.getElementById('profitChart').getContext('2d'); if(profitChart) profitChart.destroy(); profitChart = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(memberProfits).length ? Object.keys(memberProfits) : ['ไม่มีข้อมูล'], datasets: [{ label: 'กำไรสุทธิ (บาท)', data: Object.values(memberProfits).length ? Object.values(memberProfits) : [0], backgroundColor: Object.values(memberProfits).map(v => v >= 0 ? '#4caf50' : '#f44336') }] }, options: { maintainAspectRatio: false } }); }
+    function exportToExcel() { const qFilter = document.getElementById('filterQuarter').value; const mFilter = document.getElementById('filterMember').value; let excelData = [["สมาชิก", "บ่อ", "เริ่มเลี้ยง", "ยอดขาย(สะสม)", "ต้นทุน", "กำไร", "ผู้รับซื้อ"]]; db.filter(i => i.st === 'sold' || Number(i.i) > 0).forEach(pond => { if(mFilter !== 'ALL' && pond.m !== mFilter) return; const q = Math.ceil((new Date(pond.d).getMonth() + 1) / 3); if(qFilter !== 'ALL' && qFilter !== `Q${q}`) return; let cost = 0; expenses.filter(e => e.pondId === pond.id).forEach(e => cost += e.amount); excelData.push([pond.m, pond.p, pond.d.substring(0,10), pond.i, cost, (pond.i - cost), pond.buyer]); }); if(excelData.length === 1) return alert("ไม่มีข้อมูล"); const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(excelData); XLSX.utils.book_append_sheet(wb, ws, "รายงาน"); XLSX.writeFile(wb, `NKP_Report_${mFilter}.xlsx`); }
+
+    window.onload = () => { updateDropdowns(); renderSettings(); loadData(); };
+</script>
+</body>
+</html>

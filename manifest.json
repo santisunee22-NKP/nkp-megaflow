@@ -1,0 +1,15 @@
+{
+  "name": "NKP Mega-Flow (ระบบจัดการกบนา)",
+  "short_name": "กบนานครพนม",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#1b5e20",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1998/1998664.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
